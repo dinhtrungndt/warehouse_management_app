@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Animated } f
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Stack } from 'expo-router';
 import { ScannerOverlay } from '../../components/ScannerOverlay';
+import { zebraScannerService } from '../../services/ZebraScannerService';
 import { colors } from '../../theme/colors';
 
 interface ScannedTag {
@@ -18,35 +19,43 @@ export default function InventoryScreen() {
   const [scannedTags, setScannedTags] = useState<ScannedTag[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Giả lập chức năng Quét liên tục (Loop) khi bóp cò
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    // Đăng ký nhận dữ liệu từ Service (Máy thật hoặc Giả lập)
+    const unsubscribe = zebraScannerService.addListener((event) => {
+      if (event.epc) {
+        setScannedTags(prev => {
+          // Tránh duplicate nếu cần (tuỳ logic, hiện tại cho add liên tục)
+          const newTag: ScannedTag = {
+            id: Date.now().toString() + Math.random(),
+            epc: event.epc!,
+            timestamp: new Date(event.timestamp).toLocaleTimeString(),
+            status: Math.random() > 0.2 ? 'matched' : 'unknown',
+          };
+          return [newTag, ...prev];
+        });
+      }
+    });
+
     if (isScanning) {
-      // Hiệu ứng chớp nháy (sóng RFID)
       Animated.loop(
         Animated.sequence([
           Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
           Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true })
         ])
       ).start();
-
-      // Sinh mã EPC ngẫu nhiên mỗi 300ms
-      interval = setInterval(() => {
-        const randomId = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
-        const newTag: ScannedTag = {
-          id: Date.now().toString(),
-          epc: `E2801170000000000000${randomId}`,
-          timestamp: new Date().toLocaleTimeString(),
-          status: Math.random() > 0.2 ? 'matched' : 'unknown',
-        };
-        setScannedTags(prev => [newTag, ...prev]);
-      }, 300);
+      
+      // Kích hoạt súng quét
+      zebraScannerService.startScan();
     } else {
       fadeAnim.stopAnimation();
       fadeAnim.setValue(0);
+      zebraScannerService.stopScan();
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      unsubscribe();
+      zebraScannerService.stopScan();
+    };
   }, [isScanning]);
 
   const toggleScan = () => {
