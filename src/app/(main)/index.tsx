@@ -20,8 +20,11 @@ export default function MainDashboard() {
   };
 
   const navigateTo = (route: string) => {
-    // router.push(route);
-    alert(`Chức năng này sẽ chuyển đến ${route}`);
+    if (route === '/(main)/inventory' || route === '/(main)/rfid') {
+      router.push(route as any);
+    } else {
+      alert(`Chức năng này sẽ chuyển đến ${route}`);
+    }
   };
 
   return (
