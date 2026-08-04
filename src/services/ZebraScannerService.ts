@@ -17,9 +17,15 @@ class ZebraScanner {
   private isExpoGo = Constants.appOwnership === 'expo';
   private mockInterval: NodeJS.Timeout | null = null;
   private isScanning = false;
+  private mockEpcs: string[] = [];
 
   constructor() {
     this.init();
+  }
+
+  // Cho phép UI truyền danh sách thẻ thật vào để giả lập quét cho chính xác
+  public setMockEpcs(epcs: string[]) {
+    this.mockEpcs = epcs;
   }
 
   private init() {
@@ -51,9 +57,18 @@ class ZebraScanner {
     if (this.isExpoGo) {
       // GIẢ LẬP TRÊN EXPO GO
       this.mockInterval = setInterval(() => {
-        const randomId = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
+        let epc = '';
+        if (this.mockEpcs.length > 0) {
+          // Lấy random 1 thẻ hợp lệ để test
+          epc = this.mockEpcs[Math.floor(Math.random() * this.mockEpcs.length)];
+        } else {
+          // Fallback tạo thẻ rác
+          const randomId = Math.floor(Math.random() * 1000).toString().padStart(4, '0');
+          epc = `E2801170000000000000${randomId}`;
+        }
+        
         this.emit({
-          epc: `E2801170000000000000${randomId}`,
+          epc: epc,
           rssi: Math.floor(Math.random() * -30 - 30), // -30 to -60 dBm
           timestamp: Date.now(),
         });
