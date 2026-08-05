@@ -1,8 +1,28 @@
+import { useEffect } from 'react';
+import { PermissionsAndroid, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from '../theme/colors';
 
 export default function RootLayout() {
+  useEffect(() => {
+    const requestPermissions = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          ]);
+          console.log('Permissions granted:', granted);
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+    };
+    requestPermissions();
+  }, []);
+
   return (
     <>
       <StatusBar style="light" backgroundColor={colors.primary} />
