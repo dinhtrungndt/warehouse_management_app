@@ -74,7 +74,6 @@ export default function InventoryScreen() {
         setInventoryList(res.data.data);
         // Bơm danh sách thẻ hợp lệ vào súng giả lập để test
         const validEpcs = res.data.data.map((item: any) => item.SoThe).filter(Boolean);
-        zebraScannerService.setMockEpcs(validEpcs);
       }
     } catch (err) {
       Alert.alert('Lỗi', 'Không thể lấy dữ liệu kiểm kê cho đợt này');

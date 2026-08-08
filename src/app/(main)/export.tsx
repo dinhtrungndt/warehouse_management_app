@@ -72,7 +72,6 @@ export default function ExportScreen() {
       if (res.data.success) {
         setExportList(res.data.data);
         const validEpcs = res.data.data.map((item: any) => item.SoThe).filter(Boolean);
-        zebraScannerService.setMockEpcs(validEpcs);
       }
     } catch (err) {
       Alert.alert('Lỗi', 'Không thể lấy dữ liệu chi tiết phiếu xuất');

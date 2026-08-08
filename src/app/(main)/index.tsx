@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../theme/colors';
 
 const modules = [
@@ -28,7 +28,7 @@ export default function MainDashboard() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Xin chào,</Text>
-          <Text style={styles.username}>Thủ kho Bà Rịa</Text>
+          <Text style={styles.username}>Thủ kho </Text>
         </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <Ionicons name="log-out" size={24} color={colors.danger} />
@@ -37,11 +37,11 @@ export default function MainDashboard() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionTitle}>Chức năng Nghiệp vụ</Text>
-        
+
         <View style={styles.gridContainer}>
           {modules.map((mod) => (
-            <TouchableOpacity 
-              key={mod.id} 
+            <TouchableOpacity
+              key={mod.id}
               style={styles.gridItem}
               onPress={() => navigateTo(mod.route)}
               activeOpacity={0.7}

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvo
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { colors } from '../../theme/colors';
+import { zebraScannerService } from '../../services/ZebraScannerService';
 
 export default function RFIDIssueScreen() {
   const router = useRouter();
@@ -10,17 +11,29 @@ export default function RFIDIssueScreen() {
   const [rfidTag, setRfidTag] = useState('');
   const [isScanning, setIsScanning] = useState(false);
 
-  const simulateScanTag = () => {
+  React.useEffect(() => {
+    const unsubscribe = zebraScannerService.addListener((event) => {
+      if (event.epc) {
+        setRfidTag(event.epc);
+      } else if (event.barcode && !assetId) {
+        setAssetId(event.barcode);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [assetId]);
+
+  const handleStartScan = () => {
     setIsScanning(true);
-    // Giả lập sau 1.5 giây thì đọc được 1 thẻ ở gần nhất
-    setTimeout(() => {
-      const mockEpc = `E2801170000000000000${Math.floor(Math.random() * 9000 + 1000)}`;
-      setRfidTag(mockEpc);
-      setIsScanning(false);
-      Alert.alert('Thành công', 'Đã đọc được mã EPC thẻ mới!');
-    }, 1500);
+    zebraScannerService.startScan();
   };
 
+  const handleStopScan = () => {
+    setIsScanning(false);
+    zebraScannerService.stopScan();
+  };
   const handleIssue = () => {
     if (!assetId || !rfidTag) {
       Alert.alert('Lỗi', 'Vui lòng nhập mã tài sản và quét mã thẻ RFID!');
@@ -90,12 +103,12 @@ export default function RFIDIssueScreen() {
 
           <TouchableOpacity 
             style={[styles.scanTrigger, isScanning && styles.scanTriggerActive]} 
-            onPress={simulateScanTag}
-            disabled={isScanning}
+            onPressIn={handleStartScan}
+            onPressOut={handleStopScan}
           >
             <Ionicons name={isScanning ? "sync-outline" : "wifi-outline"} size={32} color={colors.surface} />
             <Text style={styles.scanTriggerText}>
-              {isScanning ? 'ĐANG DÒ THẺ...' : 'BÓP CÒ ĐỂ ĐỌC THẺ'}
+              {isScanning ? 'ĐANG DÒ THẺ (GIỮ CÒ)...' : 'BẤM GIỮ ĐỂ ĐỌC THẺ'}
             </Text>
           </TouchableOpacity>
         </View>
